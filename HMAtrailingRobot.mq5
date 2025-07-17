@@ -82,7 +82,7 @@ void OnTick()
             Print("Buy Now");
             ClosePosition(false);
             double entry=SymbolInfoDouble(_Symbol,SYMBOL_ASK);
-            TrailingDistance=TrailingPoints==0?(MathAbs(entry-hmabuffer[2])/_Point):SlPoints;
+            TrailingDistance=TrailingPoints==0?(MathAbs(entry-hmabuffer[2])/_Point):TrailingPoints;
             
             double sl=SlPoints==0?entry-((entry-hmabuffer[2])/RiskdistanceDivider) :entry-SlPoints*_Point;
             double tp=entry+TpPoints*_Point;
@@ -98,7 +98,7 @@ void OnTick()
             Print("Sell Now");
             ClosePosition(true);
             double entry=SymbolInfoDouble(_Symbol,SYMBOL_BID);
-            TrailingDistance=TrailingPoints==0?(MathAbs(entry-hmabuffer[2])/_Point):SlPoints;
+            TrailingDistance=TrailingPoints==0?(MathAbs(entry-hmabuffer[2])/_Point):TrailingPoints;
             double sl=SlPoints==0?entry-((entry-hmabuffer[2])/RiskdistanceDivider) :entry+SlPoints*_Point;
             double tp=entry-TpPoints*_Point;
             sl=NormalizeDouble(sl,_Digits);
