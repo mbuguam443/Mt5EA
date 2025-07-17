@@ -21,9 +21,10 @@ input bool InpTrailingStop=true;
 input  int    InputSellGradient=1;// HMA gradient
 input  int  SlPoints=200;
 input  int TpPoints=600;
+input  int TrailingPoints=200;
 
 
-int TrailingDistance=SlPoints;
+int TrailingDistance=TrailingPoints;
 int handleHMA;
 int totalbars;
 
@@ -81,7 +82,7 @@ void OnTick()
             Print("Buy Now");
             ClosePosition(false);
             double entry=SymbolInfoDouble(_Symbol,SYMBOL_ASK);
-            TrailingDistance=SlPoints==0?(MathAbs(entry-hmabuffer[2])/_Point):SlPoints;
+            TrailingDistance=TrailingPoints==0?(MathAbs(entry-hmabuffer[2])/_Point):SlPoints;
             
             double sl=SlPoints==0?entry-((entry-hmabuffer[2])/RiskdistanceDivider) :entry-SlPoints*_Point;
             double tp=entry+TpPoints*_Point;
@@ -97,7 +98,7 @@ void OnTick()
             Print("Sell Now");
             ClosePosition(true);
             double entry=SymbolInfoDouble(_Symbol,SYMBOL_BID);
-            TrailingDistance=SlPoints==0?(MathAbs(entry-hmabuffer[2])/_Point):SlPoints;
+            TrailingDistance=TrailingPoints==0?(MathAbs(entry-hmabuffer[2])/_Point):SlPoints;
             double sl=SlPoints==0?entry-((entry-hmabuffer[2])/RiskdistanceDivider) :entry+SlPoints*_Point;
             double tp=entry-TpPoints*_Point;
             sl=NormalizeDouble(sl,_Digits);
@@ -266,6 +267,7 @@ double CalculateLotSize(int Percent,double slDistance)
            }else
               {
                lots=0;
+               Print("That Risk want to kill us ");
               }
        
       
