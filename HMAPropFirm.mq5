@@ -6,7 +6,7 @@
 CTrade trade;
 
 input double DailyProfitTarget=200;
-input double DailyLossStop=200;
+input double DailyLossStop=-200;
 
 double profitClosed;
 
@@ -14,6 +14,7 @@ double profitClosed;
 input group "Trade Setting"
 static input ulong InpMagicNumber=3763342;
 input double LowestRiskAmount=3.0;
+input bool InpMaFilter=false;
 
 input double RiskPercentage=2.0;
 input int SlPoints=200;
@@ -142,7 +143,7 @@ void OnTick()
       
       
       
-      if(slowBuffer[1] > slowBuffer[0])
+      if(!InpMaFilter || slowBuffer[1] > slowBuffer[0])
         {
           Print("Up Trend");
           if(cntSell>0)
@@ -156,7 +157,7 @@ void OnTick()
             
               double entry=SymbolInfoDouble(_Symbol,SYMBOL_ASK);
               double tp=TpPoint==0?0: entry +TpPoint*_Point;
-              double sl=entry-SlPoints*_Point;
+              double sl=SlPoints==0?fastBuffer[2]:entry-SlPoints*_Point;
               entry=NormalizeDouble(entry,_Digits);
               sl=NormalizeDouble(sl,_Digits);
               tp=NormalizeDouble(tp,_Digits);
@@ -187,7 +188,7 @@ void OnTick()
             
              
         }
-        if(slowBuffer[1] < slowBuffer[0])
+        if(!InpMaFilter || slowBuffer[1] < slowBuffer[0])
         {
           Print("Down Trend");
           if(cntBuy>0 )
@@ -201,7 +202,7 @@ void OnTick()
               double entry=SymbolInfoDouble(_Symbol,SYMBOL_BID);
               
               double tp=TpPoint==0?0:entry-TpPoint*_Point;
-              double sl=entry+SlPoints*_Point;
+              double sl=SlPoints==0?fastBuffer[2]:entry+SlPoints*_Point;
               
               entry=NormalizeDouble(entry,_Digits);
               tp=NormalizeDouble(tp,_Digits);

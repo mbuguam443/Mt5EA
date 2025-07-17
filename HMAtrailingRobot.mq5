@@ -12,6 +12,7 @@ input int HMAPeriod=21;
 input ENUM_MA_METHOD HMAMethod=MODE_LWMA;
 input ENUM_APPLIED_PRICE HMAPrice=PRICE_CLOSE;
 
+input int RiskdistanceDivider=2;
 static input ulong InpMagicnumber=9876556;// Magic Number
 input  int PercentRisk=2;//% risk
 input double LowestRiskAmount=0.99;
@@ -22,6 +23,7 @@ input  int  SlPoints=200;
 input  int TpPoints=600;
 
 
+int TrailingDistance=SlPoints;
 int handleHMA;
 int totalbars;
 
@@ -79,7 +81,9 @@ void OnTick()
             Print("Buy Now");
             ClosePosition(false);
             double entry=SymbolInfoDouble(_Symbol,SYMBOL_ASK);
-            double sl=SlPoints==0?hmabuffer[2] :entry-SlPoints*_Point;
+            TrailingDistance=SlPoints==0?(MathAbs(entry-hmabuffer[2])/_Point):SlPoints;
+            
+            double sl=SlPoints==0?entry-((entry-hmabuffer[2])/RiskdistanceDivider) :entry-SlPoints*_Point;
             double tp=entry+TpPoints*_Point;
             tp=NormalizeDouble(tp,_Digits);
             sl=NormalizeDouble(sl,_Digits);
@@ -93,8 +97,9 @@ void OnTick()
             Print("Sell Now");
             ClosePosition(true);
             double entry=SymbolInfoDouble(_Symbol,SYMBOL_BID);
-            double sl=SlPoints==0?hmabuffer[2] :entry+SlPoints*_Point;
-            double tp=entry+TpPoints*_Point;
+            TrailingDistance=SlPoints==0?(MathAbs(entry-hmabuffer[2])/_Point):SlPoints;
+            double sl=SlPoints==0?entry-((entry-hmabuffer[2])/RiskdistanceDivider) :entry+SlPoints*_Point;
+            double tp=entry-TpPoints*_Point;
             sl=NormalizeDouble(sl,_Digits);
             entry=NormalizeDouble(entry,_Digits);
             tp=NormalizeDouble(tp,_Digits);
@@ -103,7 +108,7 @@ void OnTick()
           }
           if(InpTrailingStop)
            {
-             UpdateStopLoss(SlPoints);
+             UpdateStopLoss(TrailingDistance);
              
            }  
       }
@@ -246,6 +251,7 @@ double CalculateLotSize(int Percent,double slDistance)
    
    double moneyPerSmallestLotsize= (slDistance/tickSize)*tickValue*ticklotStep;
    Print("riskMoney: ",riskMoney," smallest you can riskMoney: ",moneyPerSmallestLotsize);
+   Comment("Small to risk: ",DoubleToString(moneyPerSmallestLotsize));
    if(moneyPerSmallestLotsize==0)
      {
       return 0;
@@ -254,7 +260,15 @@ double CalculateLotSize(int Percent,double slDistance)
    double lots= MathFloor(riskMoney/moneyPerSmallestLotsize)* ticklotStep;
    if(moneyPerSmallestLotsize >riskMoney)
      {
-      lots=ticklotMin;
+         if(LowestRiskAmount >moneyPerSmallestLotsize)
+           {
+            lots=ticklotMin;
+           }else
+              {
+               lots=0;
+              }
+       
+      
      }
    if(lots > ticklotMax)
      {
@@ -273,7 +287,7 @@ int detectSidewayMarket()
     CopyBuffer(handleHMA,0,1,3,detectbuffer);
     int diff=(detectbuffer[2]-detectbuffer[1])/_Point;
     
-    Comment("Gradient: ",diff);
+    //Comment("Gradient: ",diff);
     return diff;
 }
 
@@ -285,8 +299,8 @@ void UpdateStopLoss(int slDistance)
       ulong ticket=PositionGetTicket(i);
       if(ticket<=0){Print("Failed to get Position Ticket"); return;}
       if(!PositionSelectByTicket(ticket)){Print("Failed to select the ticket");return;}
-      ulong magicnumber;
-      if(!PositionGetInteger(POSITION_MAGIC,magicnumber)){Print("Failed to get Position Magic Number");return;}
+      ulong magicnumber=PositionGetInteger(POSITION_MAGIC);
+      if(InpMagicnumber!=magicnumber){Print("Failed to get Position Magic Number");return;}
       if(magicnumber==InpMagicnumber)
         {
          long type;
