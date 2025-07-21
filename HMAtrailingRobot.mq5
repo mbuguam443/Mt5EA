@@ -8,13 +8,13 @@ CTrade trade;
 //+------------------------------------------------------------------+
 
 input group "Fast Setting"
-input int HMAPeriod=21;
+input int HMAPeriod=100;
 input ENUM_MA_METHOD HMAMethod=MODE_LWMA;
 input ENUM_APPLIED_PRICE HMAPrice=PRICE_CLOSE;
 
 input int RiskdistanceDivider=2;
 static input ulong InpMagicnumber=9876556;// Magic Number
-input  int PercentRisk=2;//% risk
+input  double PercentRisk=2;//% risk
 input double LowestRiskAmount=0.99;
 input bool HmaTrailing=true;
 input bool InpTrailingStop=true;
@@ -82,7 +82,7 @@ void OnTick()
             Print("Buy Now");
             ClosePosition(false);
             double entry=SymbolInfoDouble(_Symbol,SYMBOL_ASK);
-            TrailingDistance=TrailingPoints==0?(MathAbs(entry-hmabuffer[2])/_Point):TrailingPoints;
+            TrailingDistance=TrailingPoints==0?(int)(MathAbs(entry-hmabuffer[2])/_Point):TrailingPoints;
             
             double sl=SlPoints==0?entry-((entry-hmabuffer[2])/RiskdistanceDivider) :entry-SlPoints*_Point;
             double tp=entry+TpPoints*_Point;
@@ -98,7 +98,7 @@ void OnTick()
             Print("Sell Now");
             ClosePosition(true);
             double entry=SymbolInfoDouble(_Symbol,SYMBOL_BID);
-            TrailingDistance=TrailingPoints==0?(MathAbs(entry-hmabuffer[2])/_Point):TrailingPoints;
+            TrailingDistance=TrailingPoints==0?(int)(MathAbs(entry-hmabuffer[2])/_Point):TrailingPoints;
             double sl=SlPoints==0?entry-((entry-hmabuffer[2])/RiskdistanceDivider) :entry+SlPoints*_Point;
             double tp=entry-TpPoints*_Point;
             sl=NormalizeDouble(sl,_Digits);
@@ -232,7 +232,7 @@ void ClosePosition(int buy_sell)
       }
 }
 
-double CalculateLotSize(int Percent,double slDistance)
+double CalculateLotSize(double Percent,double slDistance)
 {
    Print("SlDistance: ",slDistance);
    double tickSize= SymbolInfoDouble(_Symbol,SYMBOL_TRADE_TICK_SIZE);

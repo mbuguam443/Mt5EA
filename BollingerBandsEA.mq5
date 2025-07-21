@@ -316,8 +316,8 @@ void UpdateStopLoss(double slDistance)
       ulong ticket=PositionGetTicket(i);
       if(ticket<=0){Print("Failed to get Position Ticket"); return;}
       if(!PositionSelectByTicket(ticket)){Print("Failed to select position by ticket"); return;}
-      ulong magicnumber;
-      if(!PositionGetInteger(POSITION_MAGIC,magicnumber)){Print("Failed to get the magic number"); return;}
+      ulong magicnumber=PositionGetInteger(POSITION_MAGIC);
+      if(magicnumber!=InpMagicnumber){Print("Failed to get the magic number"); return;}
       if(InpMagicnumber==magicnumber)
         {
          long type;
